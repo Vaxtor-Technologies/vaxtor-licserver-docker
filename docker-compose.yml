@@ -1,0 +1,48 @@
+# Vaxtor License Server - Docker Compose
+#
+# Manual activation (from the Admin Control Center, http://<server-ip>:1947):
+#   docker compose up -d
+#
+# Automatic activation with a Product Key (only runs when no license is installed yet):
+#   PRODUCT_KEY=<PKID> docker compose up -d
+#
+# The image is pulled from Docker Hub (vaxtor/vaxtor-licserver). To build it from this repository
+# instead, uncomment the "build" lines below, use the "local" image name and run: docker compose up -d --build
+
+services:
+
+  vaxtor-licserver:
+    image: vaxtor/vaxtor-licserver:latest
+    # Build it yourself instead of pulling it: replace the "image" line above with
+    # "image: vaxtor-licserver:local" (so your build is not tagged as the Docker Hub image)
+    # and uncomment these lines
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: vaxtor-licserver
+    # Fixed hostname: it is the server name shown in the ACC and to the clients
+    hostname: vaxtor-licserver
+    restart: unless-stopped
+    environment:
+      # Product Key taken from your shell or from a .env file. Empty = manual activation
+      - PRODUCT_KEY=${PRODUCT_KEY:-}
+    ports:
+      # TCP: clients and Admin Control Center | UDP: license server discovery
+      - "1947:1947/tcp"
+      - "1947:1947/udp"
+    volumes:
+      # MANDATORY: the license lives here. Without this volume it is lost when the container is removed
+      - vaxtor-lic:/var/hasplm
+      # License Manager configuration (hasplm.ini): keeps the changes made from the ACC (password, access, ...)
+      - vaxtor-lic-config:/etc/hasplm
+    # Alternative: use the host network so the UDP broadcast discovery works on the LAN.
+    # Comment out the "ports" section above and uncomment the line below (Linux hosts only):
+    # network_mode: host
+
+volumes:
+  # Installed licenses and Sentinel secure storage
+  vaxtor-lic:
+    name: vaxtor-lic
+  # License Manager configuration
+  vaxtor-lic-config:
+    name: vaxtor-lic-config

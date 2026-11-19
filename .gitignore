@@ -1,0 +1,11 @@
+# Secrets and license material: never commit them
+.env
+*.v2c
+*.V2C
+*.c2v
+*.fp
+backup/
+*.tgz
+
+# Local tooling
+node_modules/
